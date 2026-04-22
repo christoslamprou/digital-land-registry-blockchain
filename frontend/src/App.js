@@ -87,10 +87,10 @@ function App() {
             <div className={`result-box ${result.success ? 'success' : 'error'}`}>
               {result.success ? (
                 <>
-                  <p>✅ <strong>Success!</strong> Property anchored to Block.</p>
+                  <p><strong>Success!</strong> Property anchored to Block.</p>
                   <p><strong>IPFS Hash:</strong> {result.data.ipfsHash}</p>
                 </>
-              ) : <p>❌ {result.message}</p>}
+              ) : <p> {result.message}</p>}
             </div>
           )}
         </section>
@@ -125,7 +125,7 @@ function App() {
                     View Original Deed on IPFS 🔗
                   </a>
                 </div>
-              ) : <p>❌ {searchResult.message}</p>}
+              ) : <p> {searchResult.message}</p>}
             </div>
           )}
         </section>
