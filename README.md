@@ -271,18 +271,50 @@ peer chaincode query -C mychannel -n land-registry -c '{"Args":["getAssetHistory
 ```
 # 10. Backend API Setup (Express.js & IPFS Integration)
 
-# Navigate to the backend directory
+The backend serves as a bridge between the React frontend, the IPFS network (via Pinata), and the Hyperledger Fabric blockchain.
+
+Navigate to the backend directory:
+```bash
 cd ~/digital-land-registry/backend
+```
 
-# Install required dependencies
+Install required dependencies:
+```bash
 npm install
+```
 
-# Create a .env file for Pinata keys and server port
+Create a `.env` file for Pinata keys and server port:
+```bash
 cat <<EOF > .env
 PORT=3000
 PINATA_API_KEY=your_api_key_here
 PINATA_API_SECRET=your_api_secret_here
 EOF
+```
 
-# Start the Node.js backend server
+Start the Node.js backend server:
+```bash
 node src/app.js
+```
+
+---
+
+# 11. Frontend Setup (React.js UI)
+
+The frontend provides a user-friendly Dashboard to register new properties (Mint) and verify existing ones (Query) by retrieving the IPFS document link directly from the blockchain.
+
+Open a new terminal and navigate to the frontend directory:
+```bash
+cd ~/digital-land-registry/frontend
+```
+
+Install dependencies:
+```bash
+npm install
+```
+
+Start the React application:
+```bash
+npm start
+```
+*The application will automatically open in your browser at `http://localhost:3001` . You can now interact with the complete Decentralized Application via the UI!*
