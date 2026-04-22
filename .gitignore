@@ -8,3 +8,23 @@ npm-debug.log
 
 # OS generated files
 .DS_Store
+
+# Frontend build files
+frontend/build/
+
+# Chaincode build files
+chaincode/land-registry/dist/
+
+# Secret Keys & Environment Variables
+.env
+backend/.env
+
+# Fabric Wallets & Crypto 
+backend/wallet/
+
+# Hyperledger Fabric samples & binaries 
+fabric-samples/
+install-fabric.sh
+
+# OS generated files
+.DS_Store

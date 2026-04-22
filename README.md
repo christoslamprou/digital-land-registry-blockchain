@@ -1,3 +1,21 @@
+# Digital Land Registry (Hybrid DApp)
+
+A decentralized application (DApp) for a Digital Land Registry system, leveraging the security of **Hyperledger Fabric** (Permissioned Blockchain) and the immutability of **IPFS** (Decentralized Storage) via Pinata.
+
+## Overview & Architecture
+
+This project provides a hybrid architecture to securely register and verify property title deeds. Instead of storing heavy PDF documents directly on the blockchain, the system uploads the documents to the InterPlanetary File System (IPFS). The resulting unique Content Identifier (CID/Hash) is then anchored to the Hyperledger Fabric ledger alongside the property details.
+
+### Tech Stack
+* **Blockchain Network:** Hyperledger Fabric (v2.x)
+* **Smart Contracts (Chaincode):** TypeScript / Node.js
+* **Decentralized Storage:** IPFS (Pinata API)
+* **Backend API Gateway:** Express.js / Node.js
+* **Frontend UI:** React.js / CSS3
+
+---
+
+
 # Environment Setup Guide: Digital Land Registry (Hyperledger Fabric)
 
 This guide provides step-by-step instructions to set up the development environment for the Digital Land Registry project. The setup is based on an Ubuntu/Debian Linux environment.
@@ -251,3 +269,20 @@ To prove immutability, we query the complete history of the asset, showing every
 peer chaincode query -C mychannel -n land-registry -c '{"Args":["getAssetHistory","KAEK-12345"]}' | jq .
 
 ```
+# 10. Backend API Setup (Express.js & IPFS Integration)
+
+# Navigate to the backend directory
+cd ~/digital-land-registry/backend
+
+# Install required dependencies
+npm install
+
+# Create a .env file for Pinata keys and server port
+cat <<EOF > .env
+PORT=3000
+PINATA_API_KEY=your_api_key_here
+PINATA_API_SECRET=your_api_secret_here
+EOF
+
+# Start the Node.js backend server
+node src/app.js
