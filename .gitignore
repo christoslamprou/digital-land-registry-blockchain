@@ -18,6 +18,7 @@ chaincode/land-registry/dist/
 # Secret Keys & Environment Variables
 .env
 backend/.env
+frontend/.env
 
 # Fabric Wallets & Crypto 
 backend/wallet/
