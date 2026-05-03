@@ -158,6 +158,7 @@ npx tsc --init
 
 # 7. Smart Contract (Chaincode) Development
 
+
 The core business logic of the Digital Land Registry is implemented as a TypeScript Smart Contract. It defines the AssetToken model and handles the core transactions (Mint, Transfer, Read, and History).
 
 # 7.1. Writing the Code
@@ -269,7 +270,20 @@ To prove immutability, we query the complete history of the asset, showing every
 peer chaincode query -C mychannel -n land-registry -c '{"Args":["getAssetHistory","KAEK-12345"]}' | jq .
 
 ```
-# 10. Backend API Setup (Express.js & IPFS Integration)
+
+
+# 10. Database Setup (PostgreSQL)
+
+The application relies on a PostgreSQL database for off-chain data storage and User Authentication (RBAC). Before starting the backend, ensure the database container is running.
+
+```bash
+
+# Start the database container
+docker start land-registry-db
+
+```
+
+# 11. Backend API Setup (Express.js & IPFS Integration)
 
 The backend serves as a bridge between the React frontend, the IPFS network (via Pinata), and the Hyperledger Fabric blockchain.
 
@@ -299,7 +313,7 @@ node src/app.js
 
 ---
 
-# 11. Frontend Setup (React.js UI)
+# 12. Frontend Setup (React.js UI)
 
 The frontend provides a user-friendly Dashboard to register new properties (Mint) and verify existing ones (Query) by retrieving the IPFS document link directly from the blockchain.
 
@@ -318,3 +332,15 @@ Start the React application:
 npm start
 ```
 *The application will automatically open in your browser at `http://localhost:3001` . You can now interact with the complete Decentralized Application via the UI!*
+
+## Local Testing Accounts
+
+The following mock credentials can be used to test the Role-Based Access Control (RBAC) system in a local environment:
+
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| Staff (Minting) | `staff@landregistry.gr` | `StaffPassword2026!` |
+| Notary (Transfers) | `notary@landregistry.gr` | `NotaryPassword2026!` |
+| Citizen (Read-Only) | `citizen@example.com` | `CitizenPassword2026!` |
+
+*Note: These credentials are for local demonstration purposes only and do not provide access to any production environment.*
