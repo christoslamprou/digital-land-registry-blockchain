@@ -52,7 +52,33 @@ async function queryProperty(assetId) {
     }
 }
 
+// Function to transfer ownership of a property
+async function transferProperty(assetId, currentOwnerHash, newOwnerHash, newDocumentRootHash) {
+    const { contract, gateway } = await getContract();
+    try {
+        // Use submitTransaction because we are changing the ledger state
+        const result = await contract.submitTransaction('transferOwnership', assetId, currentOwnerHash, newOwnerHash, newDocumentRootHash);
+        return result.toString();
+    } finally {
+        gateway.disconnect();
+    }
+}
+
+// Function to get the complete history of a property
+async function getAssetHistory(assetId) {
+    const { contract, gateway } = await getContract();
+    try {
+        // Use evaluateTransaction because we are only reading the ledger
+        const result = await contract.evaluateTransaction('getAssetHistory', assetId);
+        return result.toString();
+    } finally {
+        gateway.disconnect();
+    }
+}
+
 module.exports = {
     mintProperty,
-    queryProperty
+    queryProperty,
+    transferProperty,
+    getAssetHistory
 };

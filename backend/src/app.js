@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const sequelize = require('./config/database');
+const PropertyRecord = require('./models/PropertyRecord');
+
+
 
 // Load environment variables
 dotenv.config();
@@ -10,6 +14,7 @@ const port = process.env.PORT || 3000;
 
 // Import Routes
 const propertyRoutes = require('./routes/propertyRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 // Middleware setup
 app.use(cors()); 
@@ -30,11 +35,21 @@ app.use((req, res, next) => {
 
 // Base URL for property endpoints
 app.use('/api/property', propertyRoutes);
+app.use('/api/auth', authRoutes);
 
 // Basic test route
 app.get('/', (req, res) => {
     res.json({ message: 'Digital Land Registry Backend is running.' });
 });
+
+// Database sync
+sequelize.sync({ alter: true })
+    .then(() => {
+        console.log("Database & tables synced successfully!");
+    })
+    .catch(err => {
+        console.error("Unable to connect to the database:", err);
+    });
 
 // Start the server
 app.listen(port, () => {
