@@ -276,6 +276,26 @@ peer chaincode query -C mychannel -n land-registry -c '{"Args":["getAssetHistory
 
 The application relies on a PostgreSQL database for off-chain data storage and User Authentication (RBAC). Before starting the backend, ensure the database container is running.
 
+### First-Time Setup (New Environment)
+
+If you are running this project for the first time, you need to create and initialize the PostgreSQL container. Open your terminal and run:
+
+```bash
+
+docker run --name land-registry-db \
+  -e POSTGRES_USER=postgres \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=land_registry \
+  -p 5432:5432 \
+  -d postgres:14
+
+```
+(Note: The docker run command automatically starts the container in the background).
+
+### Starting an Existing Database
+
+If the container has already been created and is simply stopped (e.g., after a system reboot), you only need to start it. Do not run the setup command again.
+
 ```bash
 
 # Start the database container
