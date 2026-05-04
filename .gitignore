@@ -29,3 +29,6 @@ install-fabric.sh
 
 # OS generated files
 .DS_Store
+
+# Local Demo Credentials
+DEMO_CREDENTIALS.txt
