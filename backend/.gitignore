@@ -1,3 +1,6 @@
 node_modules/
 wallet/
 .env
+
+# Local Demo Credentials
+Demo_credentials.txt
