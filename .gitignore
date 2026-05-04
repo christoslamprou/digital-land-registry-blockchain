@@ -31,4 +31,4 @@ install-fabric.sh
 .DS_Store
 
 # Local Demo Credentials
-DEMO_CREDENTIALS.txt
+Demo_credentials.txt
