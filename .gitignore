@@ -21,7 +21,6 @@ Demo_credentials.txt
 backend/Demo_credentials.txt
 backend/src/addEngineer.js
 backend/src/fixpsw.js
-backend/src/fixPassword.js
 backend/src/seedUsers.js
 
 # 4. BLOCKCHAIN (Hyperledger Fabric)
