@@ -6,6 +6,11 @@ import MintProperty from './components/MintProperty';
 import TransferProperty from './components/TransferProperty';
 import SearchProperty from './components/SearchProperty';
 import OwnerSearch from './components/OwnerSearch';
+
+
+import PropertyRequestForm from './components/PropertyRequestForm';
+import RequestManager from './components/RequestManager';
+
 import './App.css';
 
 const App = () => {
@@ -41,9 +46,24 @@ const App = () => {
               {userRole === 'citizen' ? 'My Properties' : 'Search by Owner'}
             </Link>
             
-            {/* ONLY Staff can Register/Mint properties */}
+            {/* --- NEW ROLE-BASED LINKS --- */}
+
+            {/* ONLY Citizen can submit new requests */}
+            {userRole === 'citizen' && (
+              <Link to="/submit-request" className="nav-item">Submit Request</Link>
+            )}
+
+            {/* ONLY Engineer can review pending requests */}
+            {userRole === 'engineer' && (
+              <Link to="/requests" className="nav-item">Review Requests</Link>
+            )}
+
+            {/* ONLY Staff can Register properties directly OR approve requests */}
             {userRole === 'staff' && (
-              <Link to="/mint" className="nav-item">Register Property</Link>
+              <>
+                <Link to="/mint" className="nav-item">Register Property</Link>
+                <Link to="/requests" className="nav-item">Pending Approvals</Link>
+              </>
             )}
             
             {/* ONLY Notary can Transfer properties */}
@@ -65,11 +85,17 @@ const App = () => {
           
           <div className="content-wrapper">
             <Routes>
+              {/* Existing Routes */}
               <Route path="/" element={<Dashboard />} />
               <Route path="/search-kaek" element={<SearchProperty />} />
               <Route path="/search-owner" element={<OwnerSearch />} />
               <Route path="/mint" element={<MintProperty />} />
               <Route path="/transfer" element={<TransferProperty />} />
+              
+              {/* --- NEW ROUTES --- */}
+              <Route path="/submit-request" element={<PropertyRequestForm />} />
+              <Route path="/requests" element={<RequestManager />} />
+              
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </div>

@@ -3,6 +3,8 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const sequelize = require('./config/database');
 const PropertyRecord = require('./models/PropertyRecord');
+const PropertyRequest = require('./models/PropertyRequest');
+const requestRoutes = require('./routes/requestRoutes');
 
 
 
@@ -36,6 +38,7 @@ app.use((req, res, next) => {
 // Base URL for property endpoints
 app.use('/api/property', propertyRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/requests', requestRoutes);
 
 // Basic test route
 app.get('/', (req, res) => {

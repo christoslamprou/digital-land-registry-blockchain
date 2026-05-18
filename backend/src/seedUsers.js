@@ -14,6 +14,7 @@ const seedDatabase = async () => {
         const hashedNotaryPassword = await bcrypt.hash('NotaryPassword2026!', saltRounds);
         const hashedCitizenPassword = await bcrypt.hash('CitizenPassword2026!', saltRounds);
         const hashedCitizen2Password = await bcrypt.hash('Citizen2Password2026!', saltRounds);
+        const hashedEngineerPassword = await bcrypt.hash('EngineerPassword2026!', saltRounds);
 
         // 3. Clear any existing records to prevent unique constraint errors
         await User.destroy({ where: {} });
@@ -45,6 +46,12 @@ const seedDatabase = async () => {
                 password: hashedCitizen2Password,
                 role: 'citizen',
                 afm: '123456789' // Realistic 9-digit AFM for the testing citizen
+            },
+            {
+                email: 'engineer@landregistry.gr',
+                password: hashedEngineerPassword,
+                role: 'engineer',
+                afm: 'ENGINEER9'// Custom identifier for Engineer
             }
 
 
