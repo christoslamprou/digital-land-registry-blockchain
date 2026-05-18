@@ -1,34 +1,31 @@
-# Hyperledger Fabric
-fabric-samples/
-
-# Node.js
+# 1. GLOBAL & OS FILES
 node_modules/
 dist/
 npm-debug.log
-
-# OS generated files
 .DS_Store
-
-# Frontend build files
-frontend/build/
-
-# Chaincode build files
-chaincode/land-registry/dist/
-
-# Secret Keys & Environment Variables
 .env
-backend/.env
+
+# 2. FRONTEND (React)
+frontend/node_modules/
+frontend/build/
 frontend/.env
 
-# Fabric Wallets & Crypto 
+# 3. BACKEND (Node.js/Express)
+backend/node_modules/
+backend/.env
 backend/wallet/
+backend/contract.pdf
 
-# Hyperledger Fabric samples & binaries 
+# Local Demo Credentials & Temporary Scripts
+Demo_credentials.txt
+backend/Demo_credentials.txt
+backend/src/addEngineer.js
+backend/src/fixpsw.js
+backend/src/fixPassword.js
+backend/src/seedUsers.js
+
+# 4. BLOCKCHAIN (Hyperledger Fabric)
 fabric-samples/
 install-fabric.sh
-
-# OS generated files
-.DS_Store
-
-# Local Demo Credentials
-Demo_credentials.txt
+chaincode/land-registry/dist/
+chaincode/land-registry/node_modules/
