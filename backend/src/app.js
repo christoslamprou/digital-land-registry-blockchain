@@ -42,8 +42,8 @@ app.get('/', (req, res) => {
     res.json({ message: 'Digital Land Registry Backend is running.' });
 });
 
-// Database sync
-sequelize.sync({ alter: true })
+// Database Sync
+sequelize.sync()
     .then(() => {
         console.log("Database & tables synced successfully!");
     })

@@ -23,22 +23,31 @@ exports.mintToken = async (req, res) => {
 
         console.log(`Processing mint request for: ${assetId}`);
 
-        // Step 1: Save Off-Chain Data to PostgreSQL
-        console.log("Saving metadata to PostgreSQL...");
+        const existingProperty = await PropertyRecord.findOne({ where: { kaek: assetId } });
+        if (existingProperty) {
+            return res.status(400).json({ error: "Property already exists in local database" });
+        }
+
+        // Step 1: Upload Document to IPFS
+        const documentRootHash = await pinataService.uploadToIPFS(file.buffer, file.originalname);
+        
+        // Step 2: Save On-Chain Data to Hyperledger Fabric
+        // WE DO THIS BEFORE POSTGRESQL! If it fails, it jumps to catch() immediately.
+        console.log("Registering asset on the Blockchain...");
+        const result = await blockchainService.mintProperty(assetId, ownerHash, documentRootHash);
+
+        // Step 3: Save Off-Chain Data to PostgreSQL
+        // This will ONLY run if Step 2 was successful.
+        console.log("Blockchain transaction successful. Saving metadata to PostgreSQL...");
         await PropertyRecord.create({
             kaek: assetId,
+            ownerHash: ownerHash,
             fullAddress: fullAddress,
             surfaceArea: parseFloat(surfaceArea),
             objectiveValue: objectiveValue ? parseFloat(objectiveValue) : null,
             landUsage: landUsage || null,
             constructionYear: constructionYear ? parseInt(constructionYear) : null
         });
-
-        // Step 2: Upload Document to IPFS
-        const documentRootHash = await pinataService.uploadToIPFS(file.buffer, file.originalname);
-        
-        // Step 3: Save On-Chain Data to Hyperledger Fabric
-        const result = await blockchainService.mintProperty(assetId, ownerHash, documentRootHash);
 
         res.status(201).json({
             message: "Property successfully registered in Database and Blockchain",
@@ -48,8 +57,7 @@ exports.mintToken = async (req, res) => {
     } catch (error) {
         console.error("Mint error:", error);
         
-        // If DB insertion fails (e.g., duplicate KAEK), it will automatically throw an error 
-        // and prevent the Blockchain transaction from executing. This ensures data consistency.
+        // The error will be sent back safely WITHOUT dirtying the database
         res.status(500).json({ error: error.message });
     }
 };
@@ -66,8 +74,17 @@ exports.transferToken = async (req, res) => {
 
         console.log(`Processing transfer for: ${assetId}`);
 
+        // 1. Upload new document to IPFS
         const newDocumentRootHash = await pinataService.uploadToIPFS(file.buffer, file.originalname);
+        
+        // 2. Execute transfer on Blockchain
         const result = await blockchainService.transferProperty(assetId, currentOwnerHash, newOwnerHash, newDocumentRootHash);
+
+        // 3. UPDATE THE OFF-CHAIN POSTGRESQL DATABASE 
+        await PropertyRecord.update(
+            { ownerHash: newOwnerHash }, // Set the new owner's Hash/AFM
+            { where: { kaek: assetId } }  // Find the property by KAEK
+        );
 
         res.status(200).json({
             message: "Success",
@@ -113,6 +130,28 @@ exports.getHistory = async (req, res) => {
     } catch (error) {
         console.error("History error:", error);
         res.status(500).json({ error: error.message });
+    }
+};
+
+// Get all properties owned by a specific hash (AFM)
+exports.getPropertiesByOwner = async (req, res) => {
+    try {
+        const ownerHash = req.params.hash; // Gets the hash from the URL
+        console.log(`Fetching properties for owner hash: ${ownerHash}`);
+
+        // Fetch properties from the off-chain PostgreSQL database
+        const PropertyRecord = require('../models/PropertyRecord'); 
+        
+        const properties = await PropertyRecord.findAll({
+            where: { ownerHash: ownerHash }
+        });
+
+        // Even if empty, return an array so the frontend doesn't crash
+        res.status(200).json(properties);
+    } catch (error) {
+        // NOW WE WILL SEE THE ERROR IN THE TERMINAL!
+        console.error("Error fetching properties by owner:", error);
+        res.status(500).json({ error: "Internal server error while fetching properties." });
     }
 };
 

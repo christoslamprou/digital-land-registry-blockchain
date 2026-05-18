@@ -12,6 +12,10 @@ const PropertyRecord = sequelize.define('PropertyRecord', {
         allowNull: false,
         unique: true
     },
+    ownerHash: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     fullAddress: {
         type: DataTypes.STRING,
         allowNull: false

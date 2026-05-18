@@ -18,6 +18,11 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: false
     },
+    afm: {
+        type: DataTypes.STRING,
+        allowNull: true, // true because Staff and Notary might not need an AFM to login
+        unique: true
+    },
     role: {
         type: DataTypes.ENUM('citizen', 'notary', 'staff'),
         allowNull: false,

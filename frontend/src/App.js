@@ -1,72 +1,83 @@
 import React, { useState } from 'react';
-import './App.css';
-
-// Import Components
+import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import Auth from './components/Auth';
+import Dashboard from './components/Dashboard';
 import MintProperty from './components/MintProperty';
 import TransferProperty from './components/TransferProperty';
 import SearchProperty from './components/SearchProperty';
-import Dashboard from './components/Dashboard';
+import OwnerSearch from './components/OwnerSearch';
+import './App.css';
 
-function App() {
-  // Authentication State
-  const [token, setToken] = useState(sessionStorage.getItem('token') || null);
-  const [role, setRole] = useState(sessionStorage.getItem('role') || null);
-
-  // State to force Dashboard refresh after new mint/transfer
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const triggerRefresh = () => {
-    setRefreshKey(prevKey => prevKey + 1);
-  };
+const App = () => {
+  const [token, setToken] = useState(sessionStorage.getItem('token'));
+  const userRole = sessionStorage.getItem('role') || 'citizen';
 
   const handleLogout = () => {
+    sessionStorage.clear();
     setToken(null);
-    setRole(null);
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('role');
   };
 
-  // 1. Render Auth Screen if not logged in
   if (!token) {
-    return <Auth setToken={setToken} setRole={setRole} />;
+    return <Auth setToken={setToken} />;
   }
 
-  // 2. Render Main App if logged in
   return (
-    <div className="App">
-      <header className="App-header">
-        <div>
-          <h1>Digital Land Registry</h1>
-          <p>Logged in as: <strong>{role ? role.toUpperCase() : ''}</strong></p>
-        </div>
-        <button onClick={handleLogout} className="btn-logout">Logout</button>
-      </header>
+    <Router>
+      <div className="app-layout">
+        
+        {/* Fixed Sidebar with updated RBAC rules */}
+        <aside className="sidebar">
+          <div className="sidebar-header">
+            <h2>Land Registry</h2>
+            <span className="role-badge">{userRole.toUpperCase()}</span>
+          </div>
+          
+          <nav className="sidebar-nav">
+            <Link to="/" className="nav-item">Dashboard</Link>
+            <Link to="/search-kaek" className="nav-item">Search by KAEK</Link>
+            
+            {/* Accessible to all, but dynamically changes title and behavior for citizens */}
+            <Link to="/search-owner" className="nav-item">
+              {userRole === 'citizen' ? 'My Properties' : 'Search by Owner'}
+            </Link>
+            
+            {/* ONLY Staff can Register/Mint properties */}
+            {userRole === 'staff' && (
+              <Link to="/mint" className="nav-item">Register Property</Link>
+            )}
+            
+            {/* ONLY Notary can Transfer properties */}
+            {userRole === 'notary' && (
+              <Link to="/transfer" className="nav-item">Transfer Property</Link>
+            )}
+          </nav>
+          
+          <button onClick={handleLogout} className="logout-btn">
+             Logout
+          </button>
+        </aside>
 
-      <main className="container">
-        <div className="column">
-          {/* Conditional Rendering based on Role */}
-          {role === 'staff' && <MintProperty onSuccess={triggerRefresh} />}
-          {role === 'notary' && <TransferProperty onSuccess={triggerRefresh} />}
-          {role === 'citizen' && (
-            <section className="card">
-              <h2>Welcome, Citizen</h2>
-              <p>You have read-only access to the public land registry. Use the search panel to verify property records and trace ownership history on the blockchain.</p>
-            </section>
-          )}
-        </div>
-
-        <div className="column">
-          {/* Search is available to everyone */}
-          <SearchProperty />
-        </div>
-
-        {/* Dashboard is available to everyone */}
-        {/* We use 'key' to force the component to re-mount and re-fetch data on update */}
-        <Dashboard key={refreshKey} />
-      </main>
-    </div>
+        {/* Main Content Area */}
+        <main className="main-content">
+          <header className="topbar">
+            <h1>Digital Land Registry System</h1>
+          </header>
+          
+          <div className="content-wrapper">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/search-kaek" element={<SearchProperty />} />
+              <Route path="/search-owner" element={<OwnerSearch />} />
+              <Route path="/mint" element={<MintProperty />} />
+              <Route path="/transfer" element={<TransferProperty />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </div>
+        </main>
+        
+      </div>
+    </Router>
   );
-}
+};
 
 export default App;

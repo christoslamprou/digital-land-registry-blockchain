@@ -3,12 +3,36 @@ const router = express.Router();
 const multer = require('multer');
 const propertyController = require('../controllers/propertyController');
 
-// Configure multer to store incoming files in memory (RAM) temporarily
 const upload = multer({ storage: multer.memoryStorage() });
 
-// POST request to mint a new property
-// 'upload.single("document")' intercepts the file attached to the "document" field
-router.post('/mint', upload.single('document'), propertyController.mintToken);
+// Middleware to protect routes: Only allow Staff and Notary
+const restrictToStaffAndNotary = (req, res, next) => {
+    const userRole = req.headers['user-role'];
+
+    if (userRole === 'Staff' || userRole === 'Notary') {
+        next(); 
+    } else {
+        return res.status(403).json({ error: "Access Denied. Insufficient permissions." });
+    }
+};
+
+// --- PROTECTED ROUTES ---
+
+// 1. Mint Route Protected
+router.post(
+    '/mint', 
+    restrictToStaffAndNotary, // <-- Security check first
+    upload.single('document'), 
+    propertyController.mintToken
+);
+
+// 2. Transfer Route Protected
+router.post(
+    '/transfer', 
+    restrictToStaffAndNotary, // <-- Security check first
+    upload.single('document'), 
+    propertyController.transferToken
+);
 
 
 router.get('/all', propertyController.getAllProperties);
@@ -16,11 +40,12 @@ router.get('/all', propertyController.getAllProperties);
 // GET request to read a property
 router.get('/:id', propertyController.readToken);
 
-// POST request to transfer property
-router.post('/transfer', upload.single('document'), propertyController.transferToken); 
 
 // GET request to get the history of property
 router.get('/history/:id', propertyController.getHistory);
+
+// Search properties by owner hash
+router.get('/owner/:hash', propertyController.getPropertiesByOwner);
 
 
 module.exports = router;
