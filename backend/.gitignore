@@ -4,3 +4,10 @@ wallet/
 
 # Local Demo Credentials
 Demo_credentials.txt
+
+src/addEngineer.js
+src/fixpsw.js
+src/seedUsers.js
+
+contract.pdf
+
