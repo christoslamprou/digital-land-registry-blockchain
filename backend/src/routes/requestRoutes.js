@@ -12,4 +12,6 @@ router.get('/list', requestController.getRequests);
 router.post('/engineer-review', requestController.engineerReview);
 router.post('/staff-review', requestController.staffFinalApproval);
 
+router.get('/my-properties', requestController.getMyProperties);
+
 module.exports = router;

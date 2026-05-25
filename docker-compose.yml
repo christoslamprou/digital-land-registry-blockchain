@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: land-registry-backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    # Crucial: Maps the container's internal localhost to the host machine
+    # This allows connection to PostgreSQL and Hyperledger Fabric
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "peer0.org1.example.com:host-gateway" 
+      - "peer0.org2.example.com:host-gateway"
+      - "orderer.example.com:host-gateway"    
+      - "ca.org1.example.com:host-gateway"
+
+  frontend:
+    build: ./frontend
+    container_name: land-registry-frontend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend

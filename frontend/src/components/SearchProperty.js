@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { 
+  Box, Card, CardContent, Typography, TextField, Button, 
+  Grid, Divider, Chip, CircularProgress, Link, Paper, Alert 
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import DescriptionIcon from '@mui/icons-material/Description';
+import HistoryIcon from '@mui/icons-material/History';
 
 const SearchProperty = () => {
   const [searchId, setSearchId] = useState('');
@@ -42,36 +50,113 @@ const SearchProperty = () => {
   };
 
   return (
-    <div className="card">
-      <h2>Search Property by KAEK</h2>
-      <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>Enter the unique Asset ID to verify the current status and view the audit trail.</p>
-      
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
-        <input style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} type="text" placeholder="Enter Asset ID (KAEK)" value={searchId} onChange={(e) => setSearchId(e.target.value)} required />
-        <button type="submit" className="btn-primary" disabled={searchLoading}>
-          {searchLoading ? 'Searching...' : 'Search Ledger'}
-        </button>
-      </form>
+    <Box sx={{ maxWidth: 1000, margin: '0 auto' }}>
+      {/* Search Header Card */}
+      <Card elevation={3} sx={{ mb: 4, borderRadius: 2 }}>
+        <CardContent sx={{ p: 4 }}>
+          <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold', color: 'secondary.main' }}>
+            <AccountBalanceIcon color="primary" />
+            Search Property by KAEK
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+            Enter the unique Asset ID to verify the current status and view the audit trail.
+          </Typography>
+          
+          <Box component="form" onSubmit={handleSearch} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+            <TextField 
+              fullWidth 
+              label="Enter Asset ID (KAEK)" 
+              variant="outlined" 
+              value={searchId} 
+              onChange={(e) => setSearchId(e.target.value)} 
+              required 
+              disabled={searchLoading}
+            />
+            <Button 
+              type="submit" 
+              variant="contained" 
+              size="large"
+              disabled={searchLoading || !searchId.trim()}
+              startIcon={searchLoading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
+              sx={{ height: 56, px: 4, whiteSpace: 'nowrap' }}
+            >
+              {searchLoading ? 'Searching...' : 'Search Ledger'}
+            </Button>
+          </Box>
+        </CardContent>
+      </Card>
 
+      {/* Search Results Area */}
       {searchResult && (
-        <div style={{ padding: '20px', borderLeft: searchResult.success ? '4px solid #2ecc71' : '4px solid #e74c3c', backgroundColor: '#f9f9f9', marginBottom: '20px' }}>
+        <Box sx={{ mb: 4 }}>
           {searchResult.success ? (
-            <div>
-              <p><strong>Asset ID:</strong> {searchResult.data.assetId}</p>
-              <p><strong>Current Owner:</strong> {searchResult.data.ownerHash}</p>
-              <p><strong>Status:</strong> <span style={{ color: '#2ecc71', fontWeight: 'bold' }}>{searchResult.data.status || 'Active'}</span></p>
-              <a href={`https://gateway.pinata.cloud/ipfs/${searchResult.data.documentRootHash}`} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: '10px', color: '#3498db', textDecoration: 'none', fontWeight: 'bold' }}>
-                📄 View Title Deed
-              </a>
-            </div>
-          ) : <p style={{ color: '#e74c3c', margin: 0 }}>{searchResult.message}</p>}
-        </div>
+            <Card elevation={2} sx={{ borderLeft: '6px solid #2e7d32', borderRadius: 2 }}>
+              <CardContent sx={{ p: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                  <Typography variant="h6" color="primary" fontWeight="bold">Property Details</Typography>
+                  <Chip label={searchResult.data.status || 'Active'} color="success" sx={{ fontWeight: 'bold' }} />
+                </Box>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Asset ID (KAEK)</Typography>
+                    <Typography variant="body1" fontWeight="bold">{searchResult.data.assetId || searchResult.data.kaek}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Current Owner</Typography>
+                    <Typography variant="body1" fontWeight="bold" sx={{ wordBreak: 'break-all' }}>{searchResult.data.ownerHash}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Address</Typography>
+                    <Typography variant="body1">{searchResult.data.fullAddress || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Surface Area</Typography>
+                    <Typography variant="body1">{searchResult.data.surfaceArea ? `${searchResult.data.surfaceArea} sqm` : 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Usage</Typography>
+                    <Typography variant="body1">{searchResult.data.landUsage || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Constructed</Typography>
+                    <Typography variant="body1">{searchResult.data.constructionYear || 'N/A'}</Typography>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="caption" color="text.secondary">Objective Value</Typography>
+                    <Typography variant="body1">{searchResult.data.objectiveValue ? `${searchResult.data.objectiveValue} EUR` : 'N/A'}</Typography>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 1 }} />
+                    <Link 
+                      href={`https://gateway.pinata.cloud/ipfs/${searchResult.data.documentRootHash}`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, mt: 1, fontWeight: 'bold', textDecoration: 'none' }}
+                    >
+                      <DescriptionIcon fontSize="small" /> View Official Title Deed
+                    </Link>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          ) : (
+            <Alert severity="error" variant="filled" sx={{ borderRadius: 2 }}>
+              {searchResult.message}
+            </Alert>
+          )}
+        </Box>
       )}
 
+      {/* Blockchain Audit Trail */}
       {historyData && historyData.length > 0 && (
-        <div style={{ marginTop: '30px' }}>
-          <h3>Blockchain Audit Trail</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
+        <Box>
+          <Typography variant="h6" sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1, color: 'secondary.main', fontWeight: 'bold' }}>
+            <HistoryIcon color="primary" /> Blockchain Audit Trail
+          </Typography>
+          
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {historyData.map((historyItem, index) => {
               const rawTs = historyItem.timestamp || historyItem.Timestamp;
               const date = rawTs && rawTs.seconds ? new Date(rawTs.seconds * 1000).toLocaleString() : 'Unknown Date';
@@ -81,20 +166,34 @@ const SearchProperty = () => {
               const finalDoc = assetData.documentRootHash || assetData.DocumentRootHash;
 
               return (
-                <div key={index} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '4px', position: 'relative', borderLeft: '4px solid #3498db' }}>
-                  <span style={{ fontSize: '0.8rem', color: '#7f8c8d', display: 'block', marginBottom: '5px' }}>{date}</span>
-                  <p style={{ margin: '0 0 5px 0', fontSize: '0.9rem' }}>TxID: <strong>{txId.substring(0, 20)}...</strong></p>
-                  <p style={{ margin: '0 0 5px 0' }}>Owner: {finalOwner}</p>
+                <Paper key={index} elevation={2} sx={{ p: 3, borderLeft: '4px solid #1976d2', borderRadius: 2 }}>
+                  <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                    {date}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1, wordBreak: 'break-all' }}>
+                    TxID: <strong>{txId}</strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1, wordBreak: 'break-all' }}>
+                    Owner: {finalOwner}
+                  </Typography>
                   {finalDoc && (
-                     <a href={`https://gateway.pinata.cloud/ipfs/${finalDoc}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.9rem', color: '#e67e22', textDecoration: 'none' }}>View Document at this state</a>
+                    <Link 
+                      href={`https://gateway.pinata.cloud/ipfs/${finalDoc}`} 
+                      target="_blank" 
+                      rel="noreferrer" 
+                      color="secondary"
+                      sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.85rem' }}
+                    >
+                      <DescriptionIcon fontSize="small" /> View Document at this state
+                    </Link>
                   )}
-                </div>
+                </Paper>
               );
             })}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

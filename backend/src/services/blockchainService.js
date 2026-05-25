@@ -17,7 +17,10 @@ async function getContract() {
     await gateway.connect(ccp, {
         wallet,
         identity: 'admin',
-        discovery: { enabled: true, asLocalhost: true }
+        discovery: { 
+        enabled: true,
+        asLocalhost: false 
+    }
     });
 
     // 4. Get the network (channel) and the smart contract

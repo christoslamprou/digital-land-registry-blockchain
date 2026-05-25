@@ -24,7 +24,7 @@
     },
     "peers": {
         "peer0.org1.example.com": {
-            "url": "grpcs://localhost:7051",
+            "url": "grpcs://host.docker.internal:7051",
             "tlsCACerts": {
                 "pem": "-----BEGIN CERTIFICATE-----\nMIICWTCCAf6gAwIBAgIRAORl5vro3R5fbxZt0CrmKqUwCgYIKoZIzj0EAwIwdjEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHzAdBgNVBAMTFnRs\nc2NhLm9yZzEuZXhhbXBsZS5jb20wHhcNMjYwNDE1MTkzMjAwWhcNMzYwNDEyMTkz\nMjAwWjB2MQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UE\nBxMNU2FuIEZyYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEfMB0G\nA1UEAxMWdGxzY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49\nAwEHA0IABP3dJy1UINMzxprAtDereRbHC8CHDobo6MnILSRBA3IdUE43jBf3NRWI\nClf4yKh66exK3461WPWMEClAOOaWPNajbTBrMA4GA1UdDwEB/wQEAwIBpjAdBgNV\nHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwEwDwYDVR0TAQH/BAUwAwEB/zApBgNV\nHQ4EIgQgdHH/sHJiHFV8KyKlKmmMQotgKAxV0pZMFuSRaZsfUrIwCgYIKoZIzj0E\nAwIDSQAwRgIhAL44P0hu9KKODU7g9PY5l5M6Xhz1+uJyaTXofGGH+B/GAiEAxVJn\nxMnsrC/+C19Im+q5vc0y97nQt9anKeTxirto7Dk=\n-----END CERTIFICATE-----\n"
             },
@@ -36,7 +36,7 @@
     },
     "certificateAuthorities": {
         "ca.org1.example.com": {
-            "url": "https://localhost:7054",
+            "url": "https://host.docker.internal:7054",
             "caName": "ca-org1",
             "tlsCACerts": {
                 "pem": ["-----BEGIN CERTIFICATE-----\nMIICUTCCAfigAwIBAgIRAOqhjLL1UbKWcH85Ahp8hGcwCgYIKoZIzj0EAwIwczEL\nMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNhbiBG\ncmFuY2lzY28xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMTE2Nh\nLm9yZzEuZXhhbXBsZS5jb20wHhcNMjYwNDE1MTkzMjAwWhcNMzYwNDEyMTkzMjAw\nWjBzMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMN\nU2FuIEZyYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UE\nAxMTY2Eub3JnMS5leGFtcGxlLmNvbTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IA\nBAvkvYCsaXRSlUgZbTanoBFXmVUuyReK7tBEANQHTxS1uOTkCXohH/3D07aoBuLk\n1OnQI+9olgFSME553Btir+2jbTBrMA4GA1UdDwEB/wQEAwIBpjAdBgNVHSUEFjAU\nBggrBgEFBQcDAgYIKwYBBQUHAwEwDwYDVR0TAQH/BAUwAwEB/zApBgNVHQ4EIgQg\nblZYG+iOyOmDKd9tXuu2dtEJ0lZSRKwcZJhG9cWS388wCgYIKoZIzj0EAwIDRwAw\nRAIgM2SrcC8L1s73efNYvl7FJeBMj6ghi97kFgW7LPDHCmcCICq/HVWQ7WToMbq6\nEZjwVUWpgyW1VGKqn7QmTRGFOaaP\n-----END CERTIFICATE-----\n"]

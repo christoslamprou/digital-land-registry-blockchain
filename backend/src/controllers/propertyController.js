@@ -97,7 +97,7 @@ exports.transferToken = async (req, res) => {
     }
 };
 
-// Read property details
+// Read property details (merging Blockchain state with PostgreSQL metadata)
 exports.readToken = async (req, res) => {
     try {
         const assetId = req.params.id;
@@ -107,8 +107,38 @@ exports.readToken = async (req, res) => {
         }
 
         console.log(`Fetching data for: ${assetId}`);
-        const result = await blockchainService.queryProperty(assetId);
-        res.status(200).json(result);
+
+        // 1. Fetch the state from the Blockchain (Hyperledger Fabric)
+        const blockchainDataBuffer = await blockchainService.queryProperty(assetId);
+        
+        let blockchainData = {};
+        try {
+            // Convert the buffer returned by Fabric into a JSON object
+            blockchainData = JSON.parse(blockchainDataBuffer.toString());
+        } catch (parseError) {
+            // Fallback in case the blockchain returns a raw string instead of JSON
+            blockchainData = { rawData: blockchainDataBuffer.toString() };
+        }
+
+        // 2. Fetch the rich metadata from the PostgreSQL Database
+        const dbRecord = await PropertyRecord.findOne({ where: { kaek: assetId } });
+
+        // 3. Merge the data if the record exists in the database
+        if (dbRecord) {
+            const combinedData = {
+                ...blockchainData,
+                fullAddress: dbRecord.fullAddress,
+                surfaceArea: dbRecord.surfaceArea,
+                landUsage: dbRecord.landUsage,
+                constructionYear: dbRecord.constructionYear,
+                objectiveValue: dbRecord.objectiveValue
+            };
+            return res.status(200).json(combinedData);
+        }
+
+        // Fallback: If it exists on-chain but not in the DB, return just the blockchain data
+        return res.status(200).json(blockchainData);
+
     } catch (error) {
         console.error("Read error:", error);
         res.status(500).json({ error: error.message });

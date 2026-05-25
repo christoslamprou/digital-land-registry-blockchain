@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { 
+  Box, Card, CardContent, Typography, TextField, 
+  Button, Alert, CircularProgress, Avatar, Link 
+} from '@mui/material';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 const Auth = ({ setToken, setRole }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [afm, setAfm] = useState(''); // New state for AFM
+  const [afm, setAfm] = useState('');
   const [isLoginView, setIsLoginView] = useState(true);
   const [authMessage, setAuthMessage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -16,7 +21,6 @@ const Auth = ({ setToken, setRole }) => {
     const endpoint = isLoginView ? '/api/auth/login' : '/api/auth/register';
     
     try {
-      // Include afm in the request if we are registering
       const payload = isLoginView ? { email, password } : { email, password, afm };
       
       const res = await axios.post(`http://localhost:3000${endpoint}`, payload);
@@ -28,7 +32,6 @@ const Auth = ({ setToken, setRole }) => {
         sessionStorage.setItem('token', res.data.token);
         sessionStorage.setItem('role', res.data.role);
         
-        // Save the REAL AFM from the database to local storage
         if (res.data.afm) {
           sessionStorage.setItem('userHash', res.data.afm);
         } else {
@@ -48,40 +51,106 @@ const Auth = ({ setToken, setRole }) => {
     }
   };
 
+  const toggleView = () => {
+    setIsLoginView(!isLoginView);
+    setAuthMessage(null);
+    setEmail('');
+    setPassword('');
+    setAfm('');
+  };
+
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#2c3e50' }}>
-      <div className="card" style={{ width: '400px', textAlign: 'center' }}>
-        <h2 style={{ color: '#2c3e50', marginBottom: '10px' }}>Digital Land Registry</h2>
-        <p style={{ marginBottom: '20px', color: '#7f8c8d' }}>
-          {isLoginView ? 'Login to your account' : 'Register as a new Citizen'}
-        </p>
-        
-        <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-          <input type="email" placeholder="Email Address" value={email} onChange={(e) => setEmail(e.target.value)} required style={{ padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }} />
+    <Box 
+      sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh', 
+        bgcolor: 'secondary.main' // Uses the dark slate gray from your theme
+      }}
+    >
+      <Card elevation={6} sx={{ width: '100%', maxWidth: 400, borderRadius: 3, mx: 2 }}>
+        <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           
-          {/* Show AFM field ONLY during Registration */}
-          {!isLoginView && (
-            <input type="text" placeholder="AFM (Tax ID)" value={afm} onChange={(e) => setAfm(e.target.value)} required style={{ padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }} />
+          <Avatar sx={{ m: 1, bgcolor: 'primary.main', width: 56, height: 56 }}>
+            <LockOutlinedIcon fontSize="large" />
+          </Avatar>
+          
+          <Typography component="h1" variant="h5" fontWeight="bold" sx={{ mt: 1, mb: 1, color: 'secondary.main' }}>
+            Digital Land Registry
+          </Typography>
+          
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            {isLoginView ? 'Sign in to access your dashboard' : 'Register to create your citizen identity'}
+          </Typography>
+          
+          <Box component="form" onSubmit={handleAuth} sx={{ width: '100%' }}>
+            <TextField
+              fullWidth
+              label="Email Address"
+              variant="outlined"
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            
+            {!isLoginView && (
+              <TextField
+                fullWidth
+                label="AFM (Tax ID)"
+                variant="outlined"
+                margin="normal"
+                value={afm}
+                onChange={(e) => setAfm(e.target.value)}
+                required
+              />
+            )}
+
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              variant="outlined"
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              disabled={loading}
+              sx={{ mt: 3, mb: 2, height: 48 }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : (isLoginView ? 'Sign In' : 'Register')}
+            </Button>
+          </Box>
+
+          {authMessage && (
+            <Alert 
+              severity={authMessage.type} 
+              sx={{ width: '100%', mt: 2 }}
+            >
+              {authMessage.text}
+            </Alert>
           )}
 
-          <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required style={{ padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }} />
-          
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? 'Processing...' : (isLoginView ? 'Login' : 'Register')}
-          </button>
-        </form>
+          <Link 
+            component="button" 
+            variant="body2" 
+            onClick={toggleView} 
+            sx={{ mt: 2, textDecoration: 'none', fontWeight: 'bold' }}
+          >
+            {isLoginView ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+          </Link>
 
-        {authMessage && (
-          <div style={{ marginTop: '15px', padding: '10px', borderRadius: '4px', backgroundColor: authMessage.type === 'success' ? '#d4edda' : '#f8d7da', color: authMessage.type === 'success' ? '#155724' : '#721c24' }}>
-            {authMessage.text}
-          </div>
-        )}
-
-        <p style={{ marginTop: '20px', fontSize: '0.9rem', cursor: 'pointer', color: '#3498db' }} onClick={() => { setIsLoginView(!isLoginView); setAuthMessage(null); }}>
-          {isLoginView ? "Don't have an account? Sign up here" : "Already registered? Login here"}
-        </p>
-      </div>
-    </div>
+        </CardContent>
+      </Card>
+    </Box>
   );
 };
 

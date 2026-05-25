@@ -1,22 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { 
+  Box, Card, CardContent, Typography, TextField, Button, 
+  Table, TableBody, TableCell, TableContainer, TableHead, 
+  TableRow, Paper, CircularProgress, Alert, Link, Divider 
+} from '@mui/material';
+
+// --- MUI Icons ---
+import MapsHomeWorkIcon from '@mui/icons-material/MapsHomeWork';
+import PersonSearchIcon from '@mui/icons-material/PersonSearch';
+import HistoryIcon from '@mui/icons-material/History';
+import DescriptionIcon from '@mui/icons-material/Description';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import SearchIcon from '@mui/icons-material/Search';
 
 const OwnerSearch = () => {
     const userRole = sessionStorage.getItem('role') || 'citizen';
     const citizenHash = sessionStorage.getItem('userHash') || '';
-    const token = sessionStorage.getItem('token'); // <-- 1. Get the Token!
+    const token = sessionStorage.getItem('token'); 
 
-    // If citizen, pre-lock the search hash input to their own identity string
     const [ownerHash, setOwnerHash] = useState(userRole === 'citizen' ? citizenHash : '');
     const [properties, setProperties] = useState([]);
     const [historyData, setHistoryData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [selectedProperty, setSelectedProperty] = useState('');
+    const [errorMessage, setErrorMessage] = useState(null);
 
     // Auto load properties if citizen enters the tab
     useEffect(() => {
         const triggerAutoSearch = async () => {
-            if (!token) return; // Prevent search if not logged in
+            if (!token) return; 
             setLoading(true);
             try {
                 const res = await axios.get(`http://localhost:3000/api/property/owner/${citizenHash}`, {
@@ -40,9 +53,10 @@ const OwnerSearch = () => {
 
     const handleSearch = async (e) => {
         e.preventDefault();
+        setErrorMessage(null);
         
         if (!token) {
-            alert("Session expired. Please login again.");
+            setErrorMessage("Session expired. Please login again.");
             return;
         }
 
@@ -58,8 +72,11 @@ const OwnerSearch = () => {
                 }
             });
             setProperties(res.data);
+            if (res.data.length === 0) {
+                setErrorMessage("No properties found for this owner.");
+            }
         } catch (error) {
-            alert(error.response?.data?.error || "Error searching for properties. Check backend logs.");
+            setErrorMessage(error.response?.data?.error || "Error searching for properties. Check backend logs.");
         } finally {
             setLoading(false);
         }
@@ -67,79 +84,133 @@ const OwnerSearch = () => {
 
     const fetchAuditTrail = async (assetId) => {
         if (!token) return;
-        
+        setErrorMessage(null);
         setSelectedProperty(assetId);
+        
         try {
             const res = await axios.get(`http://localhost:3000/api/property/history/${assetId}`, {
                 headers: { 
                     'user-role': userRole,
-                    'Authorization': `Bearer ${token}` // <-- 4. Send Digital ID
+                    'Authorization': `Bearer ${token}` 
                 }
             });
             const hData = typeof res.data === 'string' ? JSON.parse(res.data) : res.data;
             setHistoryData(hData);
         } catch (error) {
-            alert("Error fetching blockchain history");
+            setErrorMessage(`Error fetching blockchain history for Asset: ${assetId}`);
         }
     };
 
     return (
-        <div className="card">
-            <h2>{userRole === 'citizen' ? 'My Asset Portfolio' : 'Ownership Lookup'}</h2>
-            <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>
-                {userRole === 'citizen' ? 'Verifiable assets connected to your identity hash.' : 'Find all properties assigned to a specific Owner Hash and view their history.'}
-            </p>
+        <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
             
-            <form onSubmit={handleSearch} style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
-                <input 
-                    style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} 
-                    type="text" 
-                    placeholder="Enter Owner Hash" 
-                    value={ownerHash} 
-                    onChange={(e) => setOwnerHash(e.target.value)} 
-                    required 
-                    disabled={userRole === 'citizen'} 
-                />
-                <button type="submit" className="btn-primary" disabled={loading}>
-                    {loading ? 'Loading...' : (userRole === 'citizen' ? 'Refresh Portfolio' : 'Search Owner')}
-                </button>
-            </form>
+            {/* Header & Search Card */}
+            <Card elevation={3} sx={{ mb: 4, borderRadius: 2 }}>
+                <CardContent sx={{ p: 4 }}>
+                    <Typography variant="h5" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 'bold', color: 'secondary.main' }}>
+                        {userRole === 'citizen' ? <MapsHomeWorkIcon color="primary" /> : <PersonSearchIcon color="primary" />}
+                        {userRole === 'citizen' ? 'My Asset Portfolio' : 'Ownership Lookup'}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+                        {userRole === 'citizen' 
+                            ? 'Verifiable assets connected to your identity hash.' 
+                            : 'Find all properties assigned to a specific Owner Hash and view their history.'}
+                    </Typography>
+                    
+                    <Box component="form" onSubmit={handleSearch} sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+                        <TextField 
+                            fullWidth 
+                            label="Enter Owner Hash" 
+                            variant="outlined" 
+                            value={ownerHash} 
+                            onChange={(e) => setOwnerHash(e.target.value)} 
+                            required 
+                            disabled={userRole === 'citizen' || loading} 
+                        />
+                        <Button 
+                            type="submit" 
+                            variant="contained" 
+                            size="large"
+                            disabled={loading || !ownerHash.trim()}
+                            startIcon={loading ? <CircularProgress size={20} color="inherit" /> : (userRole === 'citizen' ? <RefreshIcon /> : <SearchIcon />)}
+                            sx={{ height: 56, px: 4, whiteSpace: 'nowrap' }}
+                        >
+                            {loading ? 'Loading...' : (userRole === 'citizen' ? 'Refresh Portfolio' : 'Search Owner')}
+                        </Button>
+                    </Box>
 
+                    {errorMessage && (
+                        <Alert severity="error" sx={{ mt: 3, borderRadius: 2 }}>
+                            {errorMessage}
+                        </Alert>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Properties Table Card */}
             {properties.length > 0 && (
-                <div style={{ marginTop: '20px', overflowX: 'auto' }}>
-                    <h3 style={{ marginBottom: '15px' }}>Properties</h3>
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Asset ID (KAEK)</th>
-                                <th>Address</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {properties.map((prop) => (
-                                <tr key={prop.kaek}>
-                                    <td><strong>{prop.kaek}</strong></td>
-                                    <td>{prop.fullAddress}</td>
-                                    <td>
-                                        <button 
-                                            style={{ padding: '6px 12px', background: '#34495e', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            onClick={() => fetchAuditTrail(prop.kaek)}
-                                        >
-                                            View Audit Trail
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <Card elevation={2} sx={{ mb: 4, borderRadius: 2 }}>
+                    <CardContent sx={{ p: 0 }}> {/* p:0 to let the table span full width of the card */}
+                        <Box sx={{ p: 3, pb: 2 }}>
+                            <Typography variant="h6" color="primary" fontWeight="bold">
+                                Registered Properties ({properties.length})
+                            </Typography>
+                        </Box>
+                        
+                        <TableContainer>
+                            <Table sx={{ minWidth: 650 }} aria-label="properties table">
+                                <TableHead sx={{ bgcolor: 'background.default' }}>
+                                    <TableRow>
+                                        <TableCell sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Asset ID (KAEK)</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Address</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Area</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Usage</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Year</TableCell>
+                                        <TableCell sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Value (€)</TableCell>
+                                        <TableCell align="center" sx={{ fontWeight: 'bold', color: 'secondary.main' }}>Actions</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {properties.map((prop) => (
+                                        <TableRow key={prop.kaek || prop.assetId} sx={{ '&:hover': { bgcolor: '#f5f7fa' } }}>
+                                            <TableCell>
+                                                <Typography variant="body2" fontWeight="bold">
+                                                    {prop.kaek || prop.assetId}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell>{prop.fullAddress || 'N/A'}</TableCell>
+                                            <TableCell>{prop.surfaceArea ? `${prop.surfaceArea} sqm` : 'N/A'}</TableCell>
+                                            <TableCell>{prop.landUsage || 'N/A'}</TableCell>
+                                            <TableCell>{prop.constructionYear || 'N/A'}</TableCell>
+                                            <TableCell>{prop.objectiveValue || 'N/A'}</TableCell>
+                                            <TableCell align="center">
+                                                <Button 
+                                                    variant="outlined" 
+                                                    size="small" 
+                                                    startIcon={<HistoryIcon />}
+                                                    onClick={() => fetchAuditTrail(prop.kaek || prop.assetId)}
+                                                    sx={{ borderRadius: 2 }}
+                                                >
+                                                    Audit Trail
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </CardContent>
+                </Card>
             )}
 
+            {/* Audit Trail Section */}
             {historyData && (
-                <div style={{ marginTop: '40px', padding: '20px', backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e9ecef' }}>
-                    <h3>Audit Trail for Asset: <span style={{ color: '#3498db' }}>{selectedProperty}</span></h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
+                <Box sx={{ mt: 4 }}>
+                    <Typography variant="h6" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, color: 'secondary.main', fontWeight: 'bold' }}>
+                        <HistoryIcon color="primary" /> Audit Trail for: {selectedProperty}
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         {historyData.map((item, index) => {
                             const rawTs = item.timestamp || item.Timestamp;
                             const date = rawTs && rawTs.seconds ? new Date(rawTs.seconds * 1000).toLocaleString() : 'Unknown Date';
@@ -149,22 +220,34 @@ const OwnerSearch = () => {
                             const finalDoc = assetData.documentRootHash;
 
                             return (
-                                <div key={index} style={{ padding: '15px', backgroundColor: '#fff', borderLeft: '4px solid #e67e22', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                                    <span style={{ fontSize: '0.8rem', color: '#95a5a6', display: 'block', marginBottom: '5px' }}>{date}</span>
-                                    <p style={{ margin: '0 0 5px 0' }}>TxID: <span style={{ color: '#7f8c8d', fontSize: '0.9rem' }}>{txId}</span></p>
-                                    <p style={{ margin: '0 0 5px 0' }}>Owner: <strong>{finalOwner}</strong></p>
+                                <Paper key={index} elevation={2} sx={{ p: 3, borderLeft: '4px solid #ed6c02', borderRadius: 2 }}>
+                                    <Typography variant="caption" color="text.secondary" display="block" gutterBottom>
+                                        {date}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mb: 1, wordBreak: 'break-all' }}>
+                                        TxID: <Typography component="span" color="text.secondary">{txId}</Typography>
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ mb: 1, wordBreak: 'break-all' }}>
+                                        Owner: <strong>{finalOwner}</strong>
+                                    </Typography>
                                     {finalDoc && (
-                                        <a href={`https://gateway.pinata.cloud/ipfs/${finalDoc}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.9rem', color: '#2ecc71', textDecoration: 'none', fontWeight: 'bold' }}>
-                                            View IPFS Document
-                                        </a>
+                                        <Link 
+                                            href={`https://gateway.pinata.cloud/ipfs/${finalDoc}`} 
+                                            target="_blank" 
+                                            rel="noreferrer" 
+                                            color="success.main"
+                                            sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1, textDecoration: 'none', fontWeight: 'bold', fontSize: '0.85rem' }}
+                                        >
+                                            <DescriptionIcon fontSize="small" /> View IPFS Document
+                                        </Link>
                                     )}
-                                </div>
+                                </Paper>
                             );
                         })}
-                    </div>
-                </div>
+                    </Box>
+                </Box>
             )}
-        </div>
+        </Box>
     );
 };
 

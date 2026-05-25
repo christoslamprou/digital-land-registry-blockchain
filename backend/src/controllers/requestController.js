@@ -138,3 +138,24 @@ exports.staffFinalApproval = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+exports.getMyProperties = async (req, res) => {
+    try {
+        const ownerHash = req.headers['owner-hash'];
+
+        if (!ownerHash) {
+            return res.status(400).json({ error: "Owner hash is missing in the request headers." });
+        }
+
+        // Fetch properties based on the owner's hash
+        const PropertyRecord = require('../models/PropertyRecord');
+        const properties = await PropertyRecord.findAll({
+            where: { ownerHash: ownerHash }
+        });
+
+        return res.status(200).json(properties);
+    } catch (error) {
+        console.error("Error fetching citizen properties:", error);
+        return res.status(500).json({ error: "Internal server error." });
+    }
+};
