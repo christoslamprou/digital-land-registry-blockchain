@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const sequelize = require('./config/database');
 const PropertyRecord = require('./models/PropertyRecord');
 const PropertyRequest = require('./models/PropertyRequest');
+const TransferRequest = require('./models/TransferRequest');
 const requestRoutes = require('./routes/requestRoutes');
 
 

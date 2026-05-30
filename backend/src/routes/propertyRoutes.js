@@ -21,18 +21,27 @@ const restrictToStaffAndNotary = (req, res, next) => {
 // 1. Mint Route Protected
 router.post(
     '/mint', 
-    restrictToStaffAndNotary, // <-- Security check first
+    restrictToStaffAndNotary, // Security check first
     upload.single('document'), 
     propertyController.mintToken
 );
 
-// 2. Transfer Route Protected
+// 2. Transfer Route Protected. Notary Proposes Transfer
 router.post(
-    '/transfer', 
-    restrictToStaffAndNotary, // <-- Security check first
+    '/transfer/propose', 
+    restrictToStaffAndNotary, 
     upload.single('document'), 
-    propertyController.transferToken
+    propertyController.proposeTransfer
 );
+
+// Citizen Approves Transfer (No file upload needed, so no restrictToStaffAndNotary)
+router.post('/transfer/approve', express.json(), propertyController.approveTransfer);
+
+// Notary Executes Final Transfer
+router.post('/transfer/execute', restrictToStaffAndNotary, express.json(), propertyController.executeTransfer);
+
+// Get list of transfers
+router.get('/transfers/list', propertyController.getTransfers);
 
 
 router.get('/all', propertyController.getAllProperties);

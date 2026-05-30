@@ -25,6 +25,7 @@ import SearchProperty from './components/SearchProperty';
 import OwnerSearch from './components/OwnerSearch';
 import PropertyRequestForm from './components/PropertyRequestForm';
 import RequestManager from './components/RequestManager';
+import ConsentManager from './components/ConsentManager';
 
 const drawerWidth = 260; // Width of the sidebar
 
@@ -133,7 +134,10 @@ const App = () => {
 
               {/* Role-Based Links */}
               {userRole === 'citizen' && (
-                <NavItem to="/submit-request" icon={<AddIcon />} label="Submit Request" />
+                <>
+                  <NavItem to="/submit-request" icon={<AddIcon />} label="Submit Request" />
+                  <NavItem to="/consents" icon={<SyncAltIcon />} label="Pending Transfers" /> {/* <--- ΠΡΟΣΘΕΣΕ ΑΥΤΟ */}
+                </>
               )}
 
               {userRole === 'engineer' && (
@@ -177,6 +181,7 @@ const App = () => {
               <Route path="/transfer" element={<TransferProperty />} />
               <Route path="/submit-request" element={<PropertyRequestForm />} />
               <Route path="/requests" element={<RequestManager />} />
+              <Route path="/consents" element={<ConsentManager />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Box>

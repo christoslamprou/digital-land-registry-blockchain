@@ -1,6 +1,7 @@
 const blockchainService = require('../services/blockchainService');
 const pinataService = require('../services/pinataService');
 const PropertyRecord = require('../models/PropertyRecord');
+const TransferRequest = require('../models/TransferRequest');
 
 // Mint a new property
 exports.mintToken = async (req, res) => {
@@ -62,8 +63,9 @@ exports.mintToken = async (req, res) => {
     }
 };
 
-// Transfer property ownership
-exports.transferToken = async (req, res) => {
+
+// 1. Propose Transfer (Notary Only)
+exports.proposeTransfer = async (req, res) => {
     try {
         const { assetId, currentOwnerHash, newOwnerHash } = req.body;
         const file = req.file;
@@ -72,27 +74,113 @@ exports.transferToken = async (req, res) => {
             return res.status(400).json({ error: "Missing required fields" });
         }
 
-        console.log(`Processing transfer for: ${assetId}`);
-
-        // 1. Upload new document to IPFS
-        const newDocumentRootHash = await pinataService.uploadToIPFS(file.buffer, file.originalname);
+        // Upload the proposed document to IPFS
+        const documentHash = await pinataService.uploadToIPFS(file.buffer, file.originalname);
         
-        // 2. Execute transfer on Blockchain
-        const result = await blockchainService.transferProperty(assetId, currentOwnerHash, newOwnerHash, newDocumentRootHash);
+        // Create the pending request in PostgreSQL
+        const transferReq = await TransferRequest.create({
+            assetId,
+            currentOwnerHash,
+            newOwnerHash,
+            documentHash,
+            status: 'PENDING'
+        });
 
-        // 3. UPDATE THE OFF-CHAIN POSTGRESQL DATABASE 
-        await PropertyRecord.update(
-            { ownerHash: newOwnerHash }, // Set the new owner's Hash/AFM
-            { where: { kaek: assetId } }  // Find the property by KAEK
+        res.status(201).json({ message: "Transfer proposed successfully. Waiting for citizen approvals.", request: transferReq });
+    } catch (error) {
+        console.error("Propose Transfer Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// 2. Approve Transfer (Citizen Only)
+exports.approveTransfer = async (req, res) => {
+    try {
+        const { requestId, userHash } = req.body;
+        
+        const transferReq = await TransferRequest.findByPk(requestId);
+        if (!transferReq) return res.status(404).json({ error: "Request not found" });
+
+        // Check who is approving
+        if (transferReq.currentOwnerHash === userHash) {
+            transferReq.currentOwnerApproved = true;
+        } else if (transferReq.newOwnerHash === userHash) {
+            transferReq.newOwnerApproved = true;
+        } else {
+            return res.status(403).json({ error: "You are not a party in this transfer." });
+        }
+
+        // If both approved, change status to READY
+        if (transferReq.currentOwnerApproved && transferReq.newOwnerApproved) {
+            transferReq.status = 'READY';
+        }
+
+        await transferReq.save();
+        res.status(200).json({ message: "Approval registered successfully", request: transferReq });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// 3. Execute Transfer (Notary Only - Finalizes on Blockchain)
+exports.executeTransfer = async (req, res) => {
+    try {
+        const { requestId } = req.body;
+        
+        const transferReq = await TransferRequest.findByPk(requestId);
+        if (!transferReq || transferReq.status !== 'READY') {
+            return res.status(400).json({ error: "Transfer is not ready or does not exist." });
+        }
+
+        console.log(`Executing transfer on Blockchain for: ${transferReq.assetId}`);
+
+        // Execute on Blockchain
+        const result = await blockchainService.transferProperty(
+            transferReq.assetId, 
+            transferReq.currentOwnerHash, 
+            transferReq.newOwnerHash, 
+            transferReq.documentHash
         );
 
-        res.status(200).json({
-            message: "Success",
-            newIpfsHash: newDocumentRootHash,
-            transactionResult: result
-        });
+        // Update Off-Chain Database
+        await PropertyRecord.update(
+            { ownerHash: transferReq.newOwnerHash },
+            { where: { kaek: transferReq.assetId } }
+        );
+
+        // Mark request as completed
+        transferReq.status = 'COMPLETED';
+        await transferReq.save();
+
+        res.status(200).json({ message: "Transfer officially completed on Blockchain!", transactionResult: result });
     } catch (error) {
-        console.error("Transfer error:", error);
+        console.error("Execute Transfer Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// 4. Helper Route: Get Pending Transfers
+exports.getTransfers = async (req, res) => {
+    try {
+        const role = req.headers['user-role'];
+        const userHash = req.query.userHash; // Optional, for citizens
+
+        let whereClause = { status: ['PENDING', 'READY'] };
+
+        // If citizen is asking, only show transfers involving them
+        if (role === 'citizen' && userHash) {
+            whereClause = {
+                ...whereClause,
+                [require('sequelize').Op.or]: [
+                    { currentOwnerHash: userHash },
+                    { newOwnerHash: userHash }
+                ]
+            };
+        }
+
+        const transfers = await TransferRequest.findAll({ where: whereClause });
+        res.status(200).json(transfers);
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
